@@ -7,14 +7,21 @@ using namespace std;
 template<typename Key, typename Value> 
 class avl_map{
     private: 
+        //root node 
         AVLNode<Key, Value> * root; 
 
+        //func. defs for balancing tree
+        int getBalance(AVLNode<Key, Value>* node); 
+        int getHeight(AVLNode<Key, Value>* node); 
 
+        AVLNode<Key, Value>* insertNode(AVLNode<Key, Value>* node, const Key& key, const Value& value); 
 
+        AVLNode<Key, Value>* rightRotate(AVLNode<Key, Value>* y); 
+        AVLNode<Key, Value>* leftRotate(AVLNode<Key, Value >* x); 
     public: 
-
-
-
+        avl_map() : root(nullptr) {}
+        void insert(const Key& key, const Value& value); 
+        void printTree(); 
 }; 
 
 
