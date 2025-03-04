@@ -1,92 +1,101 @@
 #pragma once
+#include <iostream>
+#include <vector>
+#include <algorithm>
 
-#include <iostream> 
-using namespace std; 
+using namespace std;
 
+template<typename Key, typename Value>
+class AVLNode {
+public:
+    Key key;
+    Value value;
+    int height;
+    AVLNode* left;
+    AVLNode* right;
 
-template<typename Key, typename Value> 
-class avl_map{
-    private: 
-        //root node 
-        AVLNode<Key, Value> * root; 
+    AVLNode(const Key& k, const Value& v)
+        : key(k), value(v), height(1), left(nullptr), right(nullptr) {}
+};
 
-        //func. defs for balancing tree
-        int getBalance(AVLNode<Key, Value>* node); 
-        int getHeight(AVLNode<Key, Value>* node); 
+template<typename Key, typename Value>
+class avl_map {
+private:
+    AVLNode<Key, Value>* root;
 
-        AVLNode<Key, Value>* insertNode(AVLNode<Key, Value>* node, const Key& key, const Value& value); 
-
-        AVLNode<Key, Value>* rightRotate(AVLNode<Key, Value>* y); 
-        AVLNode<Key, Value>* leftRotate(AVLNode<Key, Value >* x); 
-    public: 
-        avl_map() : root(nullptr) {}
-        void insert(const Key& key, const Value& value); 
-        void printTree(); 
-}; 
-
-
-//AVLNode class to store key-value pairs
-template <typename Key, typename Value> 
-class AVLNode{
-    private: 
-        Key key; 
-        Value value; 
-        int height; 
-        AVLNode* left; 
-        AVLNode* right; 
-
-
-    public: 
-    //              Constructor
-    //------------------------------------
-    AVLNode(const Key& k, const Value& v) : 
-    key(k), value(v), height(1), left(nullptr), right(nullptr) {}
-
-
-    //              Getters
-    //------------------------------------
-    Key getKey() const{
-        return key; 
-    }
-    Value getValue() const{
-        return value; 
+    int getHeight(AVLNode<Key, Value>* node) {
+        return node ? node->height : 0;
     }
 
-    AVLNode* getLeft() const{
-        return left; 
-    }
-    AVLNode* getRight() const{
-        return right; 
+    int getBalance(AVLNode<Key, Value>* node) {
+        return node ? getHeight(node->left) - getHeight(node->right) : 0;
     }
 
-    int getHeight() const{
-        return height; 
+    AVLNode<Key, Value>* rightRotate(AVLNode<Key, Value>* y) {
+        AVLNode<Key, Value>* x = y->left;
+        y->left = x->right;
+        x->right = y;
+        y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
+        x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
+        return x;
     }
 
-    //              Setters
-    //-------------------------------------
-    void setValue(const Value& k)
-    {
-        value = v; 
+    AVLNode<Key, Value>* leftRotate(AVLNode<Key, Value>* x) {
+        AVLNode<Key, Value>* y = x->right;
+        x->right = y->left;
+        y->left = x;
+        x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
+        y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
+        return y;
     }
 
-    void setHeight(int h)
-    {
-        height = h; 
+    AVLNode<Key, Value>* insertNode(AVLNode<Key, Value>* node, const Key& key, const Value& value) {
+        if (!node) return new AVLNode<Key, Value>(key, value);
+
+        if (key < node->key)
+            node->left = insertNode(node->left, key, value);
+        else if (key > node->key)
+            node->right = insertNode(node->right, key, value);
+        else
+            return node;
+
+        node->height = max(getHeight(node->left), getHeight(node->right)) + 1;
+        int balance = getBalance(node);
+
+        // Balancing cases
+        if (balance > 1 && key < node->left->key)
+            return rightRotate(node);
+        if (balance < -1 && key > node->right->key)
+            return leftRotate(node);
+        if (balance > 1 && key > node->left->key) {
+            node->left = leftRotate(node->left);
+            return rightRotate(node);
+        }
+        if (balance < -1 && key < node->right->key) {
+            node->right = rightRotate(node->right);
+            return leftRotate(node);
+        }
+
+        return node;
     }
 
-    void setLeft(AVLNode* node)
-    {
-        left = node; 
+public:
+    avl_map() : root(nullptr) {}
+
+    void insert(const Key& key, const Value& value) {
+        root = insertNode(root, key, value);
     }
 
-    void setRight(AVLNode* node)
-    {
-        right = node; 
+    Value* find(const Key& key) {
+        AVLNode<Key, Value>* current = root;
+        while (current) {
+            if (key == current->key)
+                return &current->value;
+            else if (key < current->key)
+                current = current->left;
+            else
+                current = current->right;
+        }
+        return nullptr;
     }
-
-    //              Friend declerations
-    //-------------------------------------
-    template<typename K, typename V> 
-    friend class avl_map; 
-}; 
+};

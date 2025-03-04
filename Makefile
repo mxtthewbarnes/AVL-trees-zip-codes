@@ -1,16 +1,16 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -g
+CXXFLAGS = -g -Wall -std=c++11
 
-all: avl_map
+TARGET = avl_test
 
-avl_map: main.o avl_map.o
-	$(CXX) $(CXXFLAGS) -o avl_map main.o avl_map.o
+SRCS = main.cpp
+OBJS = $(SRCS:.cpp=.o)
 
-avl_map.o: avl_map.cpp avl_map.h
-	$(CXX) $(CXXFLAGS) -c avl_map.cpp
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
-main.o: main.cpp avl_map.h
-	$(CXX) $(CXXFLAGS) -c main.cpp
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o avl_mape
+	rm -f $(OBJS) $(TARGET)
