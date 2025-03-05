@@ -11,12 +11,12 @@ using namespace std;
 using namespace chrono;
 
 int main() {
-    // Create data structures
+    //necessary data structuers 
     avl_map<int, USCity> avl;
     map<int, USCity> std;
     list<int> zList;
 
-    // Read data from CSV and fill the structures
+   
     parseCSV("uszips.csv", avl, std, zList);
 
     // Print summary of parsed data
@@ -25,7 +25,7 @@ int main() {
     cout << "  Inserted " << zList.size() << " total entries" << endl;
     cout << "=======================================\n" << endl;
 
-    // Convert zList to a vector
+    //converting list into vector 
     vector<int> zipVec;
     for (int zip : zList) {
         zipVec.push_back(zip);

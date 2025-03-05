@@ -199,7 +199,7 @@ public:
         }
 
         iterator& operator++() {
-            current = nullptr; // Doesn't do real traversal, just moves to end
+            current = nullptr; 
             return *this;
         }
     };

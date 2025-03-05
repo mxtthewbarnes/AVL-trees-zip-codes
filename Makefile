@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -g -Wall -std=c++11
 
-TARGET = avl_test
+TARGET = run
 
 SRCS = main.cpp
 OBJS = $(SRCS:.cpp=.o)
