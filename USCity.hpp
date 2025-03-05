@@ -11,63 +11,123 @@ using namespace std;
 
 class USCity {
 public:
-    string city, state, county;
+    string city;
+    string state;
+    string county;
+
+//          Default Constructor
+//------------------------------------------------
     USCity() : city(""), state(""), county("") {}
-    USCity(const string& c, const string& s, const string& cn) : city(c), state(s), county(cn) {}
+
+//          Parameterized Constructor
+//-------------------------------------------------
+    USCity(const string& c, const string& s, const string& cn) 
+    : city(c), state(s), county(cn) {}
 };
 
+
+
+
+
+//parseCSV() parses uszips.csv and populates both the avl_map and the std::map
+//1) opens the csv, reads line by line, extracts zip codes and state/city/county info
+//2) removes quotes and checks for valid zip
+//3) converts zip to int and skips invalid entries 
 inline void parseCSV(const string& filename, avl_map<int, USCity>& avlTree, map<int, USCity>& stdMap, list<int>& zipList) {
     ifstream file(filename);
+    
     if (!file.is_open()) {
-        cerr << "Error: Could not open file " << filename << endl;
+        cout << "file could not be opened" << endl;
         return;
     }
 
+    //skipping the header line as its invalid info 
     string line;
-    getline(file, line); // Skip header line
+    getline(file, line); 
 
     while (getline(file, line)) {
         stringstream ss(line);
-        string zipStr, lat, lng, city, state, stateFull, county;
+        string stringZip, latitude, longitude, city, state, stateName, county;
 
-        getline(ss, zipStr, ',');    // ZIP code (as string)
-        getline(ss, lat, ',');       // Latitude (ignored)
-        getline(ss, lng, ',');       // Longitude (ignored)
-        getline(ss, city, ',');      // City name
-        getline(ss, state, ',');     // State abbreviation
-        getline(ss, stateFull, ','); // Full state name
-        getline(ss, county, ',');    // County name
+        getline(ss, stringZip, ',');
+        getline(ss, latitude, ',');
+        getline(ss, longitude, ',');
+        getline(ss, city, ',');
+        getline(ss, state, ',');
+        getline(ss, stateName, ',');
+        getline(ss, county, ',');
 
-        // **Remove double quotes from ZIP code and other fields**
-        zipStr.erase(remove(zipStr.begin(), zipStr.end(), '"'), zipStr.end());
-        city.erase(remove(city.begin(), city.end(), '"'), city.end());
-        state.erase(remove(state.begin(), state.end(), '"'), state.end());
-        county.erase(remove(county.begin(), county.end(), '"'), county.end());
+        for (int i = 0; i < stringZip.size(); i++) {
+            if (stringZip[i] == '"') {
+                stringZip.erase(i, 1);
+                i--;
+            }
+        }
+        for (int i = 0; i < city.size(); i++) {
+            if (city[i] == '"') {
+                city.erase(i, 1);
+                i--;
+            }
+        }
+        for (int i = 0; i < state.size(); i++) {
+            if (state[i] == '"') {
+                state.erase(i, 1);
+                i--;
+            }
+        }
+        for (int i = 0; i < county.size(); i++) {
+            if (county[i] == '"') {
+                county.erase(i, 1);
+                i--;
+            }
+        }
 
-        // **Ensure ZIP code is valid**
-        zipStr.erase(0, zipStr.find_first_not_of(" \t\r\n"));  // Trim leading whitespace
-        zipStr.erase(zipStr.find_last_not_of(" \t\r\n") + 1);  // Trim trailing whitespace
-
-        if (zipStr.empty() || city.empty() || state.empty() || county.empty()) {
-            cerr << "Warning: Skipping invalid ZIP code entry -> " << zipStr << endl;
+        //checks if stringZip is empty
+        if (stringZip == "") {
+            cout << "zip code missing." << endl;
+            continue;
+        }
+        if (city == "") {
+            cout << "zip code missing." << endl;
+            continue;
+        }
+        if (state == "") {
+            cout << "zip code missing." << endl;
+            continue;
+        }
+        if (county == "") {
+            cout << "zip code missing." << endl;
             continue;
         }
 
-        // **Convert ZIP code safely**
-        try {
-            if (all_of(zipStr.begin(), zipStr.end(), ::isdigit)) { // Ensure numeric
-                int zip = stoi(zipStr);
-                USCity usCity(city, state, county);
-
-                avlTree.insert(zip, usCity);
-                stdMap.insert({zip, usCity});
-                zipList.push_back(zip);
-            } else {
-                throw invalid_argument("Non-numeric ZIP code");
+        
+        bool validZip = true;
+        for (int i = 0; i < stringZip.length(); i++) {
+            if (stringZip[i] < '0' || stringZip[i] > '9') {
+                validZip = false;
+                break;
             }
-        } catch (const exception& e) {
-            cerr << "Warning: Skipping invalid ZIP code entry -> " << zipStr << " (Conversion error)\n";
         }
+
+        if (!validZip) {
+            cout << "skipping invalid zipcode: " << stringZip << endl;
+            continue;
+        }
+
+        //stoi() converts zip into int
+        int zip = 0;
+        try {
+            zip = stoi(stringZip);
+        } catch (exception& e) {
+            cout << "zip conversion failed for: " << stringZip << endl;
+            continue;
+        }
+
+        //inserts into data structure
+        USCity usCity(city, state, county);
+        avlTree.insert(zip, usCity);
+        stdMap[zip] = usCity;
+        zipList.push_back(zip);
     }
 
     file.close();

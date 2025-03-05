@@ -11,46 +11,87 @@ using namespace std;
 using namespace chrono;
 
 int main() {
-    avl_map<int, USCity> avlTree;
-    map<int, USCity> stdMap;
-    list<int> zipList;
+    // Create data structures
+    avl_map<int, USCity> avl;
+    map<int, USCity> std;
+    list<int> zList;
 
-    parseCSV("uszips.csv", avlTree, stdMap, zipList);
+    // Read data from CSV and fill the structures
+    parseCSV("uszips.csv", avl, std, zList);
 
-    cout << "\n===============================" << endl;
-    cout << "|| Finished parsing uszips.csv" << endl;
-    cout << "|| Inserted: " << zipList.size() << " entries" << endl;
-    cout << "===============================\n" << endl;
+    // Print summary of parsed data
+    cout << "\n=======================================" << endl;
+    cout << "  Parsed uszips.csv" << endl;
+    cout << "  Inserted " << zList.size() << " total entries" << endl;
+    cout << "=======================================\n" << endl;
 
-    // Convert zipList to vector for random selection
-    vector<int> zipVector(zipList.begin(), zipList.end());
+    // Convert zList to a vector
+    vector<int> zipVec;
+    for (int zip : zList) {
+        zipVec.push_back(zip);
+    }
 
-    // Shuffle ZIP codes
+
+
+
+
+    //          Benchmark Lookup performance
+    //-----------------------------------------------
+
+    //shuffle zip codes using marsenne twister 19937 algorithm 
+    //mt19937 is faster than using rand()
     random_device rd;
     mt19937 gen(rd());
-    shuffle(zipVector.begin(), zipVector.end(), gen);
+    shuffle(zipVec.begin(), zipVec.end(), gen);
 
-    // Select first 1000 shuffled ZIP codes
-    vector<int> testZips(zipVector.begin(), zipVector.begin() + min(1000, (int)zipVector.size()));
+    //selecting first 1000 shuffled zips 
+    vector<int> testZips;
+    int count = 0;
+    for (int zip : zipVec) {
+        if (count < 1000) {
+            testZips.push_back(zip);
+            count++;
+        } else {
+            break;
+        }
+    }
 
-    // Benchmark Lookup Performance
+    //performance for avl_map
     auto start = high_resolution_clock::now();
     for (int zip : testZips) {
-        avlTree.find(zip);
+        avl.find(zip);
     }
     auto end = high_resolution_clock::now();
     auto avlTime = duration_cast<microseconds>(end - start).count();
 
+    //performance for std::map
     start = high_resolution_clock::now();
     for (int zip : testZips) {
-        stdMap.find(zip);
+        std.find(zip);
     }
     end = high_resolution_clock::now();
-    auto stdMapTime = duration_cast<microseconds>(end - start).count();
+    auto stdTime = duration_cast<microseconds>(end - start).count();
 
-    cout << "\nLookup Benchmark Results:\n";
-    cout << "AVL Tree Lookup Time: " << avlTime << " microseconds\n";
-    cout << "std::map Lookup Time: " << stdMapTime << " microseconds\n";
+
+    int difference; 
+    if (avlTime < stdTime)
+    {
+        difference = (stdTime - avlTime); 
+    }
+    else{
+        difference = (avlTime - stdTime); 
+    }
+    cout << "\nBenchmark lookup performance results:\n";
+    cout << "-------------------------------------" << endl; 
+    cout << "avl_map:" << avlTime << " ms\n";
+    cout << "std::map:" << stdTime << " ms\n" << endl; 
+    if (avlTime < stdTime)
+    {
+        cout << "avl_map was faster than std::map by : " << difference << "ms" << endl; 
+    }
+    else{
+        cout << "std::map was faster than avl_map by: " << difference << "ms" << endl; 
+    }
 
     return 0;
 }
